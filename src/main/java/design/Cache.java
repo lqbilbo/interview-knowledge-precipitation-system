@@ -4,6 +4,9 @@ import java.util.concurrent.locks.ReadWriteLock;
 
 public interface Cache {
 
+    private String buildMessage() {
+        return "Hello";
+    }
     String getId();
 
     void putObject(Object key, Object value);
