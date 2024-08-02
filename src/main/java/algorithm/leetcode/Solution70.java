@@ -1,4 +1,4 @@
-package algorithm;
+package algorithm.leetcode;
 
 public class Solution70 {
 
