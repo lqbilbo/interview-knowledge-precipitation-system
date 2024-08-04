@@ -1,5 +1,6 @@
 package design;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 
@@ -16,6 +17,7 @@ public class LruCache implements Cache {
 
     public LruCache(Cache delegate) {
         this.delegate = delegate;
+        setSize(1024);
     }
     @Override
     public String getId() {
@@ -24,23 +26,27 @@ public class LruCache implements Cache {
 
     @Override
     public void putObject(Object key, Object value) {
+        delegate.putObject(key, value);
 
     }
 
     @Override
     public Object getObject(Object key) {
         // get的时候调用一下LinkedHashMap
-        return null;
+        keyMap.get(key);
+        return delegate.getObject(key);
     }
 
     @Override
     public Object removeObject(Object key) {
-        return null;
+        keyMap.remove(key);
+        return delegate.removeObject(key);
     }
 
     @Override
     public void clear() {
-
+        delegate.clear();
+        keyMap.clear();
     }
 
     @Override
@@ -48,10 +54,26 @@ public class LruCache implements Cache {
         return delegate.getSize();
     }
 
+    public void setSize(final int size) {
+        keyMap = new LinkedHashMap<>(size, .75F, true) {
+            private static final long serialVersionUID =4267176411845948333L;
 
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<Object, Object> eldest) {
+                boolean tooBig = size() > size;
+                if (tooBig) {
+                    eldestKey = eldest.getKey();
+                }
+                return tooBig;
+            }
+        };
+    }
 
-    @Override
-    public ReadWriteLock getReadWriteLock() {
-        return Cache.super.getReadWriteLock();
+    private void cycleKeyList(Object key) {
+        keyMap.put(key, key);
+        if (eldestKey != null) {
+            delegate.removeObject(eldestKey);
+            eldestKey = null;
+        }
     }
 }
